@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title>Login</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"
+        integrity="sha512-E8QSvWZ0eCLGk4km3hxSsNmGWbLtSCSUcewDQPQWZF6pEU8GlT8a5fF32wOl1i8ftdMhssTrF/OhyGWwonTcXA=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.5.1/axios.min.js"
+        integrity="sha512-emSwuKiMyYedRwflbZB2ghzX8Cw8fmNVgZ6yQNNXXagFzFOaQmbvQ1vmDkddHjm5AITcBIZfC7k4ShQSjgPAmQ=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+</head>
+
+<body>
+    <input type="hidden" id="_csrfToken" value="<%= csrfToken %>" />
+    <form id="userform">
+        <div>
+            <span>username</span>
+            <span><input type="text" name="username" required /></span>
+        </div>
+        <div>
+            <span>password</span>
+            <span><input type="password" name="password" required /></span>
+        </div>
+        <div>
+            <span>
+                <input type="button" value="submit" id="_submit">
+            </span>
+        </div>
+    </form>
+    <script>
+        function on_load() {
+            axios.defaults.headers.common['x-csrf-token'] = document.getElementById('_csrfToken').value;
+        }
+
+        function on_submit() {
+            var userform = document.forms['userform'];
+            var username = userform.elements['username'].value;
+            var password = userform.elements['password'].value;
+
+            password = CryptoJS.enc.Base64.stringify(CryptoJS.SHA256(password));
+
+            axios.post('/api/login', { username, password })
+                .then((resp) => {
+                    if (resp.data.success) {
+                        axios.defaults.headers.common['Authorization'] = `Bearer ${resp.data.jt}`;
+                        axios.defaults.headers.common['x-csrf-token'] = resp.data.ct;
+                        axios.post('/api/get_user')
+                            .then(resp => {
+                                console.log(resp);
+                            })
+                    }
+                })
+                .catch(
+                    e => console.error(e)
+                )
+        }
+
+        addEventListener('load', on_load);
+        _submit.addEventListener('click', on_submit);
+    </script>
+</body>
+
+</html>
