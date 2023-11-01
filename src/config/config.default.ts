@@ -14,9 +14,8 @@ export default {
       useSession: true,
     },
   },
-  jwt: {
-    secret: 'sUy#zxt!YgSGj59',
-    expiresIn: '1d',
+  passport: {
+    session: true,
   },
   view: {
     mapping: {

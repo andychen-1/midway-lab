@@ -1,6 +1,5 @@
-import { Inject, Controller, Post, Body } from '@midwayjs/core';
+import { Config, Inject, Controller, Post, Body } from '@midwayjs/core';
 import { Context } from '@midwayjs/koa';
-import { JwtService } from '@midwayjs/jwt';
 import { ParseStringPipe } from '../pipe/parseString.pipe';
 import { UserService } from '../service/user.service';
 
@@ -9,8 +8,11 @@ export class APIController {
   @Inject()
   ctx: Context;
 
-  @Inject()
-  jwtService: JwtService;
+  @Config('passport')
+  passConfig: any;
+
+  @Config('redirectRecorder.refererName')
+  refererName: string;
 
   @Inject()
   userService: UserService;
@@ -20,25 +22,18 @@ export class APIController {
     @Body('username', [ParseStringPipe]) username: string,
     @Body('password', [ParseStringPipe]) password: string
   ) {
-    const { session, sessionUserProperty, userProperty } =
-      this.ctx.app.getConfig('passport') ?? {};
-    if (session) {
-      this.ctx.session[sessionUserProperty] = {};
-    }
+    const { sessionUserProperty, userProperty } = this.passConfig;
 
+    this.ctx.session[sessionUserProperty] = {};
     const user = await this.userService.getUser({ username, password });
     if (user && user.username === username) {
-      const signPayload = { [userProperty]: username };
-      const jt = await this.jwtService.sign(signPayload);
-      if (session) {
-        this.ctx.session[sessionUserProperty] = signPayload;
-        this.ctx.rotateCsrfSecret();
-      }
+      this.ctx.session[sessionUserProperty] = { [userProperty]: username };
+      this.ctx.rotateCsrfSecret();
       return {
         success: true,
         message: '用户登录成功',
+        successRedirect: this.ctx.session[this.refererName],
         ct: this.ctx.csrf,
-        jt,
       };
     }
     this.ctx.status = 401;

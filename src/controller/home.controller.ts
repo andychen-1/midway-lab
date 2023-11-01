@@ -13,7 +13,7 @@ export class HomeController {
 
   @Get('/login')
   async login() {
-    await this.ctx.render('login.ejs', {
+    return await this.ctx.render('login.ejs', {
       csrfToken: this.ctx.csrf,
     });
   }

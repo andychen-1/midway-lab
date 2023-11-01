@@ -1,9 +1,9 @@
 import { Middleware } from '@midwayjs/core';
 import { PassportMiddleware, AuthenticateOptions } from '@midwayjs/passport';
-import { JwtStrategy } from '../strategy/jwt.strategy';
+import { LocalStrategy } from '../strategy/local.strategy';
 
 @Middleware()
-export class JwtPassportMiddleware extends PassportMiddleware(JwtStrategy) {
+export class LocalPassportMiddleware extends PassportMiddleware(LocalStrategy) {
   getAuthenticateOptions(): Promise<AuthenticateOptions> | AuthenticateOptions {
     return {
       failureRedirect: '/login',

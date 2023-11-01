@@ -1,26 +1,20 @@
 import { CustomStrategy, PassportStrategy } from '@midwayjs/passport';
-import { Strategy, ExtractJwt } from 'passport-jwt';
-import { Config, Inject } from '@midwayjs/core';
+import { Strategy } from 'passport-local';
+import { Inject } from '@midwayjs/core';
 
 import { UserService } from '../service/user.service';
 
 @CustomStrategy()
-export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
-  @Config('jwt')
-  jwtConfig;
-
+export class LocalStrategy extends PassportStrategy(Strategy) {
   @Inject()
   userService: UserService;
 
-  async validate(payload: any) {
+  validate(payload: any) {
     return payload;
   }
 
   getStrategyOptions(): any {
-    return {
-      secretOrKey: this.jwtConfig.secret,
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-    };
+    return {};
   }
 
   serializeUser(user, done) {

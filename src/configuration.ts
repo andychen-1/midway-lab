@@ -1,6 +1,5 @@
 import { Configuration, App, ILifeCycle } from '@midwayjs/core';
 import * as koa from '@midwayjs/koa';
-import * as jwt from '@midwayjs/jwt';
 import * as security from '@midwayjs/security';
 import * as passport from '@midwayjs/passport';
 import * as validate from '@midwayjs/validate';
@@ -12,13 +11,13 @@ import { join } from 'path';
 import { DefaultErrorFilter } from './filter/default.filter';
 import { NotFoundFilter } from './filter/notfound.filter';
 import { ReportMiddleware } from './middleware/report.middleware';
-import { JwtPassportMiddleware } from './middleware/jwt.middleware';
+import { LocalPassportMiddleware } from './middleware/local.middleware';
+import { RedirectRecorderMiddleware } from './middleware/redirectRecorder.middleware';
 
 @Configuration({
   imports: [
     koa,
     security,
-    jwt,
     passport,
     validate,
     {
@@ -37,7 +36,8 @@ export class MainConfiguration implements ILifeCycle {
 
   async onReady() {
     // add middleware
-    this.app.useMiddleware([JwtPassportMiddleware, ReportMiddleware]);
+    this.app.useMiddleware([LocalPassportMiddleware, ReportMiddleware]);
+    this.app.getMiddleware().insertAfter(RedirectRecorderMiddleware, 'session');
 
     // add filter
     this.app.useFilter([NotFoundFilter, DefaultErrorFilter]);
